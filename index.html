@@ -1,849 +1,723 @@
+<!-- Chosen Palette: Warm Industrial Harmony (Stone-50 Background, Slate-800 Text, Orange-600 Accents, Blue-700 for Trust) -->
+<!-- Application Structure Plan: The application is designed as a 'Market Intelligence Dashboard'. A fixed sidebar navigation (responsive) allows users to jump between logical data modules: 'Market Overview' (Growth), 'Competition' (Brands), 'Trade Dynamics' (Import/Export), 'Consumer Insights' (Segmentation), and a dedicated 'AI Strategy Lab'. This structure prioritizes quick access to specific data points while maintaining a logical narrative flow from macro (market size) to micro (consumer behavior) to actionable (AI strategy). The layout uses a card-based system to group related metrics, ensuring digestibility. -->
+<!-- Visualization & Content Choices: 
+1. Market Revenue (Line Chart): To show the 2021-2028 growth trend clearly. Goal: Inform/Change.
+2. Market Share (Doughnut): To visualize the dominance of international vs. local brands. Goal: Compare/Inform.
+3. Brand Ranking (Horizontal Bar): To rank specific brands by estimated share, allowing easy comparison of names. Goal: Compare.
+4. Import/Export (Stacked Bar): To contrast trade volumes and show the trade deficit. Goal: Compare/Change.
+5. Consumer Segments (Pie): To show the proportion of Pro vs. DIY users. Goal: Inform.
+6. Buying Criteria (Radar): To contrast the differing needs of Pro vs. DIY users across multiple dimensions. Goal: Relationships.
+7. AI Lab (Gemini API): Interactive text-based analysis to synthesize findings and generate custom strategies. Goal: Organize/Synthesize.
+-->
+<!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>捷克手工具市場與品牌發展趨勢分析</title>
-    <!-- Tailwind CSS -->
+    <title>捷克手工具市場情資儀表板</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Plotly.js -->
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8fafc; /* Slate 50 */
-            color: #1e293b; /* Slate 800 */
+            background-color: #fafaf9; 
+            color: #1c1917; 
         }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; 
-        }
-
-        /* Chart Container Styling Rules */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 650px; /* Max width to ensure readability */
+            max-width: 600px; 
             margin-left: auto;
             margin-right: auto;
-            height: 350px; /* Base height */
-            max-height: 450px;
+            height: 300px;
+            max-height: 400px;
         }
-
-        /* Responsive adjustments */
-        @media (max-width: 640px) {
+        @media (min-width: 768px) {
             .chart-container {
-                height: 300px;
+                height: 350px;
             }
         }
-
-        /* Card Hover Effects */
-        .hover-lift {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        .nav-item.active {
+            background-color: #e7e5e4;
+            border-right: 4px solid #ea580c;
+            color: #ea580c;
+            font-weight: 700;
         }
-        .hover-lift:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Loading Spinner */
         .loader {
             border: 3px solid #f3f3f3;
             border-radius: 50%;
-            border-top: 3px solid #3b82f6;
-            width: 20px;
-            height: 20px;
-            -webkit-animation: spin 1s linear infinite; /* Safari */
+            border-top: 3px solid #ea580c;
+            width: 18px;
+            height: 18px;
             animation: spin 1s linear infinite;
+            display: inline-block;
         }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fafaf9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d6d3d1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e;
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased">
+<body class="flex h-screen overflow-hidden">
 
-    <!-- Navigation / Header -->
-    <header class="bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl md:text-2xl font-bold flex items-center gap-2">
-                <span>🛠️</span> 捷克手工具市場洞察
-            </h1>
-            <nav class="hidden md:flex gap-6 text-sm font-medium">
-                <a href="#market-size" class="hover:text-orange-300 transition">市場規模</a>
-                <a href="#competition" class="hover:text-orange-300 transition">競爭版圖</a>
-                <a href="#consumer" class="hover:text-orange-300 transition">消費趨勢</a>
-                <a href="#ai-lab" class="hover:text-orange-300 transition text-orange-300 font-bold"><i class="fas fa-sparkles mr-1"></i>AI 實驗室</a>
-            </nav>
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-white border-r border-stone-200 hidden md:flex flex-col z-20 h-full">
+        <div class="p-6 border-b border-stone-100">
+            <h1 class="text-xl font-bold text-stone-800 tracking-tight">🛠️ 捷克市場<br><span class="text-orange-600">情資儀表板</span></h1>
+            <p class="text-xs text-stone-500 mt-2">2024-2028 深度分析</p>
         </div>
-    </header>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <a href="#" onclick="scrollToSection('overview')" id="nav-overview" class="nav-item block px-6 py-3 text-stone-600 hover:bg-stone-50 transition-colors duration-200">
+                📊 市場總覽
+            </a>
+            <a href="#" onclick="scrollToSection('competition')" id="nav-competition" class="nav-item block px-6 py-3 text-stone-600 hover:bg-stone-50 transition-colors duration-200">
+                🏆 競爭版圖
+            </a>
+            <a href="#" onclick="scrollToSection('trade')" id="nav-trade" class="nav-item block px-6 py-3 text-stone-600 hover:bg-stone-50 transition-colors duration-200">
+                🚢 進出口貿易
+            </a>
+            <a href="#" onclick="scrollToSection('consumer')" id="nav-consumer" class="nav-item block px-6 py-3 text-stone-600 hover:bg-stone-50 transition-colors duration-200">
+                👥 消費趨勢
+            </a>
+            <a href="#" onclick="scrollToSection('ai-lab')" id="nav-ai-lab" class="nav-item block px-6 py-3 text-stone-600 hover:bg-stone-50 transition-colors duration-200 mt-4 border-t border-stone-100">
+                🤖 AI 策略實驗室
+            </a>
+        </nav>
+        <div class="p-4 bg-stone-50 text-xs text-stone-400 text-center">
+            v1.1.0 | Fixed Rendering
+        </div>
+    </aside>
 
-    <!-- Hero Section -->
-    <section class="bg-white pb-12 pt-10 px-4 mb-8 border-b border-slate-200">
-        <div class="container mx-auto max-w-5xl text-center">
-            <span class="inline-block py-1 px-3 rounded-full bg-orange-100 text-orange-600 text-xs font-bold tracking-wide mb-4">2024-2028 深度分析報告</span>
-            <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
-                捷克手工具產業：<br><span class="text-blue-700">傳統工藝與現代創新的交匯點</span>
-            </h2>
-            <p class="text-lg text-slate-600 max-w-3xl mx-auto mb-8 leading-relaxed">
-                本專題深入探討捷克共和國手工具市場的現狀與未來。涵蓋市場規模預測、主要製造商分析（如 York, Narex）、進出口依賴度，以及從傳統五金行向電子商務轉型的通路變革。
-            </p>
-            
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
-                <div class="bg-blue-50 p-6 rounded-xl border border-blue-100 hover-lift">
-                    <div class="text-blue-800 text-sm font-semibold uppercase tracking-wider mb-2">預估年複合成長率 (CAGR)</div>
-                    <div class="text-4xl font-bold text-blue-700">4.2%</div>
-                    <div class="text-blue-600 text-xs mt-2">2024 - 2028 預測期間</div>
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 w-full bg-white z-30 border-b border-stone-200 px-4 py-3 flex justify-between items-center shadow-sm">
+        <span class="font-bold text-lg text-stone-800">🛠️ 捷克市場儀表板</span>
+        <button id="mobile-menu-btn" class="text-stone-600 focus:outline-none text-2xl">≡</button>
+    </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu" class="fixed inset-0 bg-white z-40 transform translate-x-full transition-transform duration-300 md:hidden flex flex-col pt-16">
+        <a href="#" onclick="scrollToSection('overview'); toggleMobileMenu()" class="block px-6 py-4 border-b border-stone-100 text-lg font-medium">📊 市場總覽</a>
+        <a href="#" onclick="scrollToSection('competition'); toggleMobileMenu()" class="block px-6 py-4 border-b border-stone-100 text-lg font-medium">🏆 競爭版圖</a>
+        <a href="#" onclick="scrollToSection('trade'); toggleMobileMenu()" class="block px-6 py-4 border-b border-stone-100 text-lg font-medium">🚢 進出口貿易</a>
+        <a href="#" onclick="scrollToSection('consumer'); toggleMobileMenu()" class="block px-6 py-4 border-b border-stone-100 text-lg font-medium">👥 消費趨勢</a>
+        <a href="#" onclick="scrollToSection('ai-lab'); toggleMobileMenu()" class="block px-6 py-4 bg-orange-50 text-orange-700 font-bold border-b border-stone-100 text-lg">🤖 AI 策略實驗室</a>
+        <button onclick="toggleMobileMenu()" class="mt-auto mb-8 mx-auto px-6 py-2 bg-stone-200 rounded-full">關閉選單</button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-y-auto h-full p-4 md:p-8 pt-20 md:pt-8 scroll-smooth" id="main-scroll">
+        
+        <!-- Header Section -->
+        <div class="max-w-6xl mx-auto mb-8">
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-stone-100 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-stone-800">市場關鍵數據摘要</h2>
+                    <p class="text-stone-500 text-sm mt-1">更新日期：2024 Q1 | 涵蓋範圍：捷克共和國</p>
                 </div>
-                <div class="bg-orange-50 p-6 rounded-xl border border-orange-100 hover-lift">
-                    <div class="text-orange-800 text-sm font-semibold uppercase tracking-wider mb-2">主要進口來源</div>
-                    <div class="text-4xl font-bold text-orange-600">德國 & 中國</div>
-                    <div class="text-orange-600 text-xs mt-2">佔總進口量 60% 以上</div>
-                </div>
-                <div class="bg-slate-100 p-6 rounded-xl border border-slate-200 hover-lift">
-                    <div class="text-slate-600 text-sm font-semibold uppercase tracking-wider mb-2">主要消費族群</div>
-                    <div class="text-4xl font-bold text-slate-700">DIY 家庭</div>
-                    <div class="text-slate-500 text-xs mt-2">疫情後需求顯著提升</div>
+                <div class="flex gap-4 text-center">
+                    <div class="px-4 py-2 bg-stone-50 rounded-lg">
+                        <div class="text-xs text-stone-500 uppercase tracking-wide">CAGR 成長率</div>
+                        <div class="text-2xl font-bold text-blue-700">4.2%</div>
+                    </div>
+                    <div class="px-4 py-2 bg-stone-50 rounded-lg">
+                        <div class="text-xs text-stone-500 uppercase tracking-wide">2028 預估營收</div>
+                        <div class="text-2xl font-bold text-orange-600">$382M</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- Main Content Container -->
-    <main class="container mx-auto px-4 py-8 max-w-6xl space-y-16">
-
-        <!-- Section 1: Market Size & Forecast -->
-        <section id="market-size" class="scroll-mt-24">
-            <div class="mb-6 border-l-4 border-blue-600 pl-4">
-                <h3 class="text-2xl font-bold text-slate-800">1. 市場規模與成長預測</h3>
-                <p class="text-slate-500 mt-1">捷克工業基礎深厚，帶動手工具市場穩健成長</p>
+        <!-- Section 1: Overview -->
+        <section id="overview" class="max-w-6xl mx-auto mb-12 scroll-mt-24">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-stone-800 border-l-4 border-orange-500 pl-3">市場規模與成長動能</h3>
+                <p class="text-stone-600 mt-2 text-sm leading-relaxed max-w-3xl">
+                    捷克手工具市場受惠於穩健的工業基礎與蓬勃的 DIY 文化，展現出強勁的韌性。本區塊展示從 2021 年至 2028 年的營收預測，以及推動市場成長的主要因素。儘管面臨通膨挑戰，建築業復甦與產品創新（如人體工學設計）仍是主要驅動力。
+                </p>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
-                    <h4 class="text-lg font-semibold mb-4 text-slate-700">市場營收趨勢 (百萬美元)</h4>
-                    <p class="text-sm text-slate-600 mb-6 leading-relaxed">
-                        受惠於強勁的汽車製造業（如 Škoda Auto）與蓬勃發展的建築業，捷克手工具市場展現韌性。儘管面臨通膨壓力，預計未來五年仍將保持正向成長，主要動能來自於老舊工具的汰換與高階電動輔助手工具的需求。
-                    </p>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h4 class="text-sm font-bold text-stone-700 mb-4">市場營收預測趨勢 (百萬美元)</h4>
                     <div class="chart-container">
-                        <canvas id="marketGrowthChart"></canvas>
+                        <canvas id="growthChart"></canvas>
                     </div>
-                    <p class="text-xs text-center text-slate-400 mt-2">資料來源：產業綜合預估數據</p>
                 </div>
-
-                <div class="space-y-6">
-                    <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-orange-500">
-                        <h4 class="font-bold text-slate-800 mb-2">📈 關鍵成長驅動力</h4>
-                        <ul class="list-disc list-inside text-sm text-slate-600 space-y-2">
-                            <li><strong>建築業復甦：</strong> 住宅與商業地產開發案增加，帶動基礎手工具需求。</li>
-                            <li><strong>DIY 文化盛行：</strong> 捷克擁有悠久的 "Chatařství" (週末小屋) 文化，維修保養需求高。</li>
-                            <li><strong>工業 4.0 轉型：</strong> 雖主要影響電動工具，但也帶動了對高精度、絕緣手工具的需求。</li>
-                        </ul>
+                <div class="lg:col-span-1 flex flex-col gap-4">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex-1 hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">🏗️</div>
+                        <h4 class="font-bold text-stone-800">建築業復甦</h4>
+                        <p class="text-xs text-stone-500 mt-2">住宅與商業地產開發案持續增加，帶動基礎手工具的剛性需求。</p>
                     </div>
-                    <div class="bg-blue-900 text-white p-6 rounded-lg shadow-md relative overflow-hidden">
-                        <div class="absolute top-0 right-0 opacity-10 text-9xl -mr-4 -mt-4">€</div>
-                        <h4 class="font-bold text-xl mb-2">市場亮點</h4>
-                        <p class="text-blue-100 text-sm">
-                            預計到 2026 年，具備人體工學設計與永續材質的手工具將佔據市場新產品發布的 40% 以上。消費者願意為「減輕疲勞」與「耐用性」支付 15-20% 的溢價。
-                        </p>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex-1 hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">🏡</div>
+                        <h4 class="font-bold text-stone-800">DIY 文化 (Chatařství)</h4>
+                        <p class="text-xs text-stone-500 mt-2">捷克獨特的週末小屋文化，使得家庭維修工具成為家戶必備品。</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-stone-100 flex-1 hover:shadow-md transition-shadow">
+                        <div class="text-2xl mb-2">⚙️</div>
+                        <h4 class="font-bold text-stone-800">工業 4.0 升級</h4>
+                        <p class="text-xs text-stone-500 mt-2">雖然側重自動化，但也提升了對高精度、絕緣手工具的需求。</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Section 2: Competitive Landscape -->
-        <section id="competition" class="scroll-mt-24">
-            <div class="mb-6 border-l-4 border-orange-500 pl-4">
-                <h3 class="text-2xl font-bold text-slate-800">2. 競爭版圖：本土與國際的角力</h3>
-                <p class="text-slate-500 mt-1">在地品牌 York 與 Narex 面臨國際巨頭的強勢競爭</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- Local vs International Share -->
-                <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <h4 class="text-lg font-semibold mb-2 text-slate-700">市場佔有率分佈</h4>
-                    <p class="text-sm text-slate-600 mb-4">
-                        國際品牌憑藉強大的行銷資源與廣泛的產品線主導市場，但捷克本土品牌在特定利基市場（如台鉗、木工工具）仍保有極高忠誠度。
-                    </p>
-                    <div class="chart-container" style="max-width: 400px; max-height: 400px;">
-                        <canvas id="marketShareChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Top Brands Ranking -->
-                <div class="bg-white p-6 rounded-lg shadow-sm">
-                    <h4 class="text-lg font-semibold mb-2 text-slate-700">主要品牌聲量與市佔排名</h4>
-                    <p class="text-sm text-slate-600 mb-4">
-                        德國品牌在捷克市場享有「高品質」的極高聲譽。主要品牌如 Bosch, Stanley, Makita 佔據領先地位。本土品牌 York 則以其高品質台鉗聞名全球。
-                    </p>
-                    <div class="chart-container">
-                        <canvas id="brandRankingChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 3: Trade Statistics -->
-        <section class="scroll-mt-24">
-            <div class="mb-6 border-l-4 border-blue-600 pl-4">
-                <h3 class="text-2xl font-bold text-slate-800">3. 進出口貿易結構</h3>
-                <p class="text-slate-500 mt-1">高度依賴德國進口，同時具備區域出口競爭力</p>
-            </div>
-
-            <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-100">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2">
-                        <h4 class="text-lg font-semibold mb-4 text-slate-700">近年手工具進出口金額對比</h4>
-                        <p class="text-sm text-slate-600 mb-4">
-                            捷克作為中歐製造業中心，手工具進出口活動頻繁。進口主要滿足國內多樣化需求，出口則集中於具備成本優勢的中階產品銷往鄰國。
-                        </p>
-                        <div class="chart-container">
-                            <canvas id="tradeBalanceChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="lg:col-span-1 flex flex-col justify-center space-y-4">
-                        <div class="p-4 bg-slate-50 rounded border border-slate-200">
-                            <div class="text-xs font-bold text-slate-400 uppercase">主要進口夥伴</div>
-                            <div class="text-xl font-bold text-slate-700 mt-1">🇩🇪 德國 (35%)</div>
-                            <div class="text-xl font-bold text-slate-700">🇨🇳 中國 (28%)</div>
-                            <div class="text-xl font-bold text-slate-700">🇵🇱 波蘭 (12%)</div>
-                        </div>
-                        <div class="p-4 bg-orange-50 rounded border border-orange-200">
-                            <div class="text-xs font-bold text-orange-400 uppercase">貿易逆差警示</div>
-                            <p class="text-sm text-orange-800 mt-1">
-                                對亞洲低價產品依賴度逐年提升，可能擠壓本土中低階產品生存空間。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 4: Consumer Trends -->
-        <section id="consumer" class="scroll-mt-24">
-            <div class="mb-6 border-l-4 border-orange-500 pl-4">
-                <h3 class="text-2xl font-bold text-slate-800">4. 消費者需求與區隔</h3>
-                <p class="text-slate-500 mt-1">專業職人重視耐用度，DIY 玩家追求性價比</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- User Split -->
-                <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col">
-                    <h4 class="text-lg font-semibold mb-4 text-slate-700">用戶結構分析</h4>
-                    <p class="text-sm text-slate-600 mb-6">
-                        雖然專業用戶 (工業、營建) 貢獻了大部分的營收，但 DIY 家庭用戶的數量龐大，且在疫情後對於基礎維修工具包的需求激增。
-                    </p>
-                    <div class="chart-container flex-grow flex items-center justify-center">
-                        <canvas id="userSplitChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Buying Criteria Radar -->
-                <div class="bg-white p-6 rounded-lg shadow-sm flex flex-col">
-                    <h4 class="text-lg font-semibold mb-4 text-slate-700">採購決策因素 (滿分 5 分)</h4>
-                    <p class="text-sm text-slate-600 mb-6">
-                        專業人士(Pro)願意為了品牌信賴度與極致耐用性支付高價；DIY 用戶則對價格高度敏感，並受促銷活動影響大。
-                    </p>
-                    <div class="chart-container flex-grow">
-                        <canvas id="buyingCriteriaChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 5: Sales Channels -->
-        <section class="scroll-mt-24">
-            <div class="mb-6 border-l-4 border-blue-600 pl-4">
-                <h3 class="text-2xl font-bold text-slate-800">5. 銷售通路結構變化</h3>
-                <p class="text-slate-500 mt-1">電商崛起，實體店轉型體驗中心</p>
-            </div>
-
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
-                <div class="md:flex gap-8">
-                    <div class="md:w-2/3">
-                        <h4 class="text-lg font-semibold mb-4 text-slate-700">實體 vs 線上銷售佔比演變</h4>
-                        <p class="text-sm text-slate-600 mb-6">
-                            傳統五金行 (如 Hornbach, OBI) 仍是主流，因消費者偏好實際手感體驗。然而，專營工具的電商平台 (如 Alza.cz 的工具專區) 成長迅速，特別是在標準化產品與耗材上。
-                        </p>
-                        <div class="chart-container">
-                            <canvas id="channelTrendChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="md:w-1/3 mt-6 md:mt-0 flex flex-col gap-4">
-                        <div class="bg-slate-50 p-4 rounded border-l-4 border-blue-500">
-                            <strong class="block text-slate-700 mb-1">🏪 大型連鎖 (DIY Stores)</strong>
-                            <span class="text-sm text-slate-600">OBI, Bauhaus, Hornbach 壟斷家庭市場。</span>
-                        </div>
-                        <div class="bg-slate-50 p-4 rounded border-l-4 border-blue-500">
-                            <strong class="block text-slate-700 mb-1">🔧 專業經銷商</strong>
-                            <span class="text-sm text-slate-600">提供售後維修與技術支援，深受 B2B 客戶信賴。</span>
-                        </div>
-                        <div class="bg-slate-50 p-4 rounded border-l-4 border-orange-500">
-                            <strong class="block text-slate-700 mb-1">🛒 電子商務</strong>
-                            <span class="text-sm text-slate-600">價格透明、比價容易，吸引年輕一代技師與 DIY 者。</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section 6: Strategy & Future -->
-        <section id="future" class="scroll-mt-24">
-            <div class="mb-6 border-l-4 border-orange-500 pl-4">
-                <h3 class="text-2xl font-bold text-slate-800">6. 品牌策略與未來趨勢</h3>
-                <p class="text-slate-500 mt-1">創新、永續與市場展望</p>
+        <!-- Section 2: Competition -->
+        <section id="competition" class="max-w-6xl mx-auto mb-12 scroll-mt-24">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-stone-800 border-l-4 border-blue-700 pl-3">競爭版圖分析</h3>
+                <p class="text-stone-600 mt-2 text-sm leading-relaxed max-w-3xl">
+                    捷克市場由國際巨頭與本土老牌製造商共同瓜分。本區塊分析市場佔有率分佈及主要品牌的排名。儘管德國品牌憑藉高品質形象佔據主導地位，本土品牌如 York (台鉗) 與 Narex (木工) 仍在特定利基市場保有極高忠誠度。
+                </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Strategy Cards -->
-                <div class="bg-gradient-to-br from-blue-900 to-blue-800 text-white p-6 rounded-xl shadow-lg">
-                    <h4 class="text-xl font-bold mb-4 border-b border-blue-600 pb-2">🚀 品牌發展策略</h4>
-                    <ul class="space-y-4">
-                        <li class="flex items-start">
-                            <span class="text-2xl mr-3">🖐️</span>
-                            <div>
-                                <strong class="block text-blue-200">人體工學與健康</strong>
-                                <p class="text-sm text-blue-100 opacity-90">減少職業傷害的設計成為高階產品標配（如減震手柄）。</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-2xl mr-3">🌿</span>
-                            <div>
-                                <strong class="block text-blue-200">永續環保材質</strong>
-                                <p class="text-sm text-blue-100 opacity-90">歐盟法規推動下，品牌開始使用回收塑料製造手柄與包裝。</p>
-                            </div>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-2xl mr-3">📱</span>
-                            <div>
-                                <strong class="block text-blue-200">數位化行銷</strong>
-                                <p class="text-sm text-blue-100 opacity-90">利用 YouTube 教學影片與社群媒體經營專業社群，建立品牌黏著度。</p>
-                            </div>
-                        </li>
-                    </ul>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h4 class="text-sm font-bold text-stone-700 mb-4">品牌市佔率概況</h4>
+                    <div class="chart-container" style="max-height: 280px;">
+                        <canvas id="shareChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-xs text-stone-400 text-center">國際品牌包含 Bosch, Stanley 等；本土包含 York, Narex</div>
                 </div>
-
-                <!-- Future Trends -->
-                <div class="bg-white p-6 rounded-xl shadow-md border border-slate-200">
-                    <h4 class="text-xl font-bold mb-4 text-slate-800 border-b border-slate-200 pb-2">🔮 未來關鍵趨勢</h4>
-                    <div class="space-y-4">
-                        <div class="flex items-center p-3 bg-orange-50 rounded-lg">
-                            <span class="text-2xl mr-3">🌐</span>
-                            <div>
-                                <h5 class="font-bold text-slate-700">供應鏈在地化</h5>
-                                <p class="text-xs text-slate-600">為降低物流風險，部分簡易加工可能回流中東歐地區。</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-3 bg-blue-50 rounded-lg">
-                            <span class="text-2xl mr-3">🔧</span>
-                            <div>
-                                <h5 class="font-bold text-slate-700">智能手工具</h5>
-                                <p class="text-xs text-slate-600">內建扭力感測與藍牙連接的智慧扳手將從高端走向大眾。</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center p-3 bg-slate-50 rounded-lg">
-                            <span class="text-2xl mr-3">📉</span>
-                            <div>
-                                <h5 class="font-bold text-slate-700">價格兩極化</h5>
-                                <p class="text-xs text-slate-600">中階市場萎縮，市場將區分為「極致專業」與「廉價耗材」。</p>
-                            </div>
-                        </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h4 class="text-sm font-bold text-stone-700 mb-4">主要品牌聲量與市佔排名</h4>
+                    <div class="chart-container">
+                        <canvas id="rankingChart"></canvas>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- New AI Section using Gemini API -->
-        <section id="ai-lab" class="scroll-mt-24 mt-16 mb-12">
-            <div class="mb-6 border-l-4 border-purple-600 pl-4 flex items-center gap-3">
-                <h3 class="text-2xl font-bold text-slate-800">7. AI 智慧分析實驗室 <span class="text-sm font-normal text-purple-600 bg-purple-100 px-2 py-1 rounded ml-2">Powered by Gemini</span></h3>
+        <!-- Section 3: Trade -->
+        <section id="trade" class="max-w-6xl mx-auto mb-12 scroll-mt-24">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-stone-800 border-l-4 border-stone-500 pl-3">進出口貿易結構</h3>
+                <p class="text-stone-600 mt-2 text-sm leading-relaxed max-w-3xl">
+                    作為中歐製造中心，捷克的進出口活動頻繁。數據顯示該國高度依賴德國的高階工具與中國的低價產品。貿易逆差逐年擴大，顯示內需市場對外國產品的依賴度提升。
+                </p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Tool 1: Market Analyst Chat -->
-                <div class="bg-white p-6 rounded-xl shadow-lg border border-purple-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-robot text-purple-600"></i> AI 市場分析師
-                        </h4>
-                        <span class="text-xs text-slate-400">詢問有關捷克市場的任何數據</span>
-                    </div>
-                    
-                    <div id="chat-history" class="bg-slate-50 rounded-lg p-4 h-64 overflow-y-auto mb-4 border border-slate-200 text-sm space-y-3">
-                        <div class="flex items-start gap-2">
-                            <div class="bg-purple-100 p-2 rounded-lg rounded-tl-none text-purple-800 max-w-[90%]">
-                                你好！我是您的專屬 AI 分析師。您可以問我關於市場規模、主要競爭對手或未來趨勢的問題。
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex gap-2">
-                        <input type="text" id="chat-input" class="flex-grow p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-sm" placeholder="例如：捷克市場面臨的最大威脅是什麼？">
-                        <button id="send-chat-btn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center gap-2">
-                            發送 <span id="chat-spinner" class="loader hidden w-4 h-4 border-white border-t-transparent"></span>
-                        </button>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <h4 class="text-sm font-bold text-stone-700 mb-4">進出口金額對比 (百萬美元)</h4>
+                    <div class="chart-container">
+                        <canvas id="tradeChart"></canvas>
                     </div>
                 </div>
-
-                <!-- Tool 2: Strategic Advisor Generator -->
-                <div class="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-xl shadow-lg border border-blue-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <h4 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fas fa-chess-knight text-blue-600"></i> ✨ 策略顧問生成器
-                        </h4>
-                        <span class="text-xs text-slate-400">客製化您的商業策略</span>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">您的角色</label>
-                            <select id="strategy-role" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-                                <option value="Local Manufacturer">捷克當地製造商 (如 York)</option>
-                                <option value="International Brand">國際品牌進口商 (如 Bosch)</option>
-                                <option value="E-commerce Platform">新興工具電商平台</option>
-                                <option value="DIY Retailer">大型實體五金連鎖店</option>
-                            </select>
+                <div class="flex flex-col justify-center space-y-6">
+                    <div>
+                        <div class="text-xs font-bold text-stone-400 mb-1">主要進口來源</div>
+                        <div class="text-3xl font-bold text-stone-800">🇩🇪 德國 35%</div>
+                        <div class="w-full bg-stone-100 h-2 rounded-full mt-2 overflow-hidden">
+                            <div class="bg-stone-800 h-2 rounded-full" style="width: 35%"></div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">面臨挑戰 / 關注點</label>
-                            <select id="strategy-focus" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white">
-                                <option value="Competing with low-cost Asian imports">如何與低價亞洲進口品競爭</option>
-                                <option value="Transitioning to Sustainable/Green Tools">轉型生產永續/環保工具</option>
-                                <option value="Digital Marketing & E-commerce growth">數位行銷與電商成長策略</option>
-                                <option value="Supply Chain Resilience">供應鏈韌性與在地化</option>
-                            </select>
-                        </div>
-
-                        <button id="generate-strategy-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition flex justify-center items-center gap-2">
-                            <i class="fas fa-sparkles"></i> 生成策略建議 
-                            <span id="strategy-spinner" class="loader hidden w-4 h-4 border-white border-t-transparent"></span>
-                        </button>
                     </div>
-
-                    <!-- Result Area -->
-                    <div id="strategy-result" class="mt-4 p-4 bg-white rounded-lg border border-blue-100 hidden text-sm text-slate-700 leading-relaxed">
-                        <!-- Strategy content will appear here -->
+                    <div>
+                        <div class="text-xs font-bold text-stone-400 mb-1">次要進口來源</div>
+                        <div class="text-3xl font-bold text-stone-800">🇨🇳 中國 28%</div>
+                        <div class="w-full bg-stone-100 h-2 rounded-full mt-2 overflow-hidden">
+                            <div class="bg-orange-600 h-2 rounded-full" style="width: 28%"></div>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                        <p class="text-xs text-orange-800 font-medium">⚠️ 貿易警示：亞洲低價產品進口量年增 12%，對本土中低階製造商構成價格壓力。</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <footer class="text-center text-slate-400 text-sm py-8 border-t border-slate-200">
-            <p>© 2024 捷克手工具市場研究報告 | 生成與視覺化分析</p>
+        <!-- Section 4: Consumer & Channels -->
+        <section id="consumer" class="max-w-6xl mx-auto mb-12 scroll-mt-24">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold text-stone-800 border-l-4 border-indigo-500 pl-3">消費行為與通路變革</h3>
+                <p class="text-stone-600 mt-2 text-sm leading-relaxed max-w-3xl">
+                    市場需求呈現兩極化：專業用戶追求極致耐用，DIY 用戶則對價格敏感。同時，銷售通路正經歷數位轉型，雖實體店仍是主流，但電商平台成長迅速，特別是在年輕技師族群中。
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Pie Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h4 class="text-sm font-bold text-stone-700 mb-2">用戶結構佔比</h4>
+                    <div class="chart-container" style="max-height: 250px;">
+                        <canvas id="userPieChart"></canvas>
+                    </div>
+                    <p class="text-xs text-stone-500 text-center mt-2">DIY 市場因疫情後修繕潮持續擴大</p>
+                </div>
+                
+                <!-- Radar Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h4 class="text-sm font-bold text-stone-700 mb-2">採購決策因素對比</h4>
+                    <div class="chart-container" style="max-height: 250px;">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <div class="flex justify-center gap-4 mt-2 text-xs">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-700"></span> 專業用戶</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-orange-500"></span> DIY 用戶</span>
+                    </div>
+                </div>
+
+                <!-- Channel Bars -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100 lg:col-span-1 md:col-span-2">
+                    <h4 class="text-sm font-bold text-stone-700 mb-2">銷售通路佔比趨勢</h4>
+                    <div class="chart-container" style="max-height: 250px;">
+                        <canvas id="channelChart"></canvas>
+                    </div>
+                    <p class="text-xs text-stone-500 text-center mt-2">2024 年電商佔比已達 38%</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: AI Intelligence Lab -->
+        <section id="ai-lab" class="max-w-6xl mx-auto mb-20 scroll-mt-24">
+            <div class="bg-gradient-to-br from-stone-800 to-stone-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+                <!-- Background Decoration -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-orange-600 rounded-full filter blur-3xl opacity-10 transform translate-x-1/2 -translate-y-1/2"></div>
+
+                <div class="relative z-10 mb-8">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">BETA</span>
+                        <h3 class="text-2xl font-bold">AI 策略實驗室 (Powered by Gemini)</h3>
+                    </div>
+                    <p class="text-stone-400 text-sm max-w-2xl">
+                        利用大型語言模型技術，將靜態報告轉化為動態洞察。您可以直接詢問有關捷克市場的數據細節，或根據您的商業角色（如製造商、進口商）生成客製化的進入市場策略。
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
+                    
+                    <!-- Tool 1: Market Analyst -->
+                    <div class="bg-stone-800/50 backdrop-blur-sm border border-stone-700 rounded-xl p-6 flex flex-col h-[450px]">
+                        <div class="flex items-center gap-2 mb-4 border-b border-stone-700 pb-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm">🧠</div>
+                            <h4 class="font-bold">AI 市場分析師</h4>
+                        </div>
+                        
+                        <!-- Chat History -->
+                        <div id="chat-history" class="flex-1 overflow-y-auto mb-4 space-y-4 pr-2 text-sm">
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-xs mt-1">AI</div>
+                                <div class="bg-stone-700 text-stone-200 p-3 rounded-lg rounded-tl-none">
+                                    您好！我是您的專屬分析師。您可以問我關於捷克手工具市場的規模、主要競爭對手，或是特定通路的發展趨勢。
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="relative">
+                            <input type="text" id="chat-input" placeholder="例如：捷克 DIY 市場的主要驅動力是什麼？" 
+                                class="w-full bg-stone-900 border border-stone-600 text-stone-200 rounded-lg py-3 pl-4 pr-12 focus:outline-none focus:border-orange-500 transition-colors text-sm">
+                            <button id="send-chat-btn" class="absolute right-2 top-2 w-8 h-8 bg-orange-600 rounded-md flex items-center justify-center hover:bg-orange-500 transition-colors">
+                                <span id="chat-send-icon">➤</span>
+                                <span id="chat-loader" class="loader border-white border-t-transparent w-4 h-4 hidden"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tool 2: Strategy Generator -->
+                    <div class="bg-stone-800/50 backdrop-blur-sm border border-stone-700 rounded-xl p-6 flex flex-col h-[450px]">
+                        <div class="flex items-center gap-2 mb-4 border-b border-stone-700 pb-3">
+                            <div class="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-sm">🚀</div>
+                            <h4 class="font-bold">策略顧問生成器</h4>
+                        </div>
+
+                        <div class="space-y-4 mb-6">
+                            <div>
+                                <label class="block text-xs font-bold text-stone-500 uppercase mb-2">您的商業角色</label>
+                                <select id="role-select" class="w-full bg-stone-900 border border-stone-600 text-stone-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500">
+                                    <option value="Local Manufacturer">捷克本土製造商 (如 York)</option>
+                                    <option value="Asian Exporter">亞洲手工具出口商</option>
+                                    <option value="E-commerce Platform">專營工具電商平台</option>
+                                    <option value="DIY Chain Store">大型 DIY 連鎖賣場</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-stone-500 uppercase mb-2">當前核心挑戰</label>
+                                <select id="focus-select" class="w-full bg-stone-900 border border-stone-600 text-stone-200 rounded-lg p-3 text-sm focus:outline-none focus:border-orange-500">
+                                    <option value="Price Competition">應對低價進口產品的價格競爭</option>
+                                    <option value="Brand Positioning">提升品牌在專業市場的定位</option>
+                                    <option value="Digital Transformation">加速數位通路銷售轉型</option>
+                                    <option value="Sustainability">產品材質與包裝的永續升級</option>
+                                </select>
+                            </div>
+                            <button id="generate-btn" class="w-full bg-stone-700 hover:bg-stone-600 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+                                ✨ 生成客製化策略
+                                <span id="strategy-loader" class="loader border-white border-t-transparent w-4 h-4 hidden"></span>
+                            </button>
+                        </div>
+
+                        <div id="strategy-output" class="flex-1 bg-stone-900/50 rounded-lg p-4 text-xs text-stone-300 overflow-y-auto leading-relaxed border border-stone-700/50">
+                            <p class="text-stone-500 italic text-center mt-10">請選擇角色與挑戰，點擊生成按鈕以獲取 AI 建議...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="max-w-6xl mx-auto border-t border-stone-200 py-8 text-center text-stone-400 text-xs">
+            <p>&copy; 2024 捷克手工具市場分析報告 SPA. Generated by Canvas.</p>
         </footer>
 
     </main>
 
-    <!-- JavaScript for Charts and Gemini API -->
     <script>
-        // --- Gemini API Configuration ---
-        const apiKey = ""; // System will inject the key at runtime
-
-        // Report Context for Gemini (Knowledge Base)
-        const reportContext = `
-        你是一個關於「捷克手工具市場分析」的專家助手。請根據以下數據回答問題：
-        1. 市場規模：2024-2028 年複合成長率 (CAGR) 為 4.2%。營收從 2021 年的 280M 成長至 2028 年預估的 382M 美元。
-        2. 主要品牌：國際品牌 (Bosch, Stanley, Makita) 佔 55% 市佔率，捷克本土品牌 (York, Narex) 佔 20%。
-        3. 貿易：高度依賴進口，主要來自德國 (35%) 和中國 (28%)。
-        4. 消費者：DIY 家庭用戶佔比 40%，專業用戶佔 45%。DIY 用戶重視價格，專業用戶重視耐用度與品牌。
-        5. 通路：傳統實體店仍佔 62%，但電商正快速成長 (佔 38%)。
-        6. 趨勢：人體工學設計、永續環保材質、供應鏈在地化。
-        請用繁體中文回答，語氣專業但親切，回答簡潔有力。
+        // --- Gemini API Setup ---
+        const apiKey = ""; // System will inject actual key
+        
+        // Context Data for AI
+        const marketContext = `
+        [捷克手工具市場報告摘要]
+        1. 市場概況：2024-2028 CAGR 4.2%，2028 預估營收 $382M。受惠於建築業復甦、DIY 文化(週末小屋)及工業4.0需求。
+        2. 競爭：國際品牌(Bosch, Stanley, Makita)市佔約55%，本土品牌(York, Narex)約20%，低價白牌25%。德國產品代表高品質。
+        3. 貿易：進口依賴度高，德國(35%)、中國(28%)為主要來源。貿易逆差擴大。
+        4. 消費者：DIY用戶(40%)重視價格與促銷，專業用戶(45%)重視耐用度與品牌。人體工學與健康是新關注點。
+        5. 通路：實體店(62%)仍為主，但電商(38%)成長快。
+        6. 策略關鍵字：供應鏈在地化、永續材質、智慧手工具、數位行銷。
         `;
 
-        // Helper function to call Gemini API
-        async function callGeminiAPI(promptText) {
+        // API Call Function
+        async function callGemini(prompt) {
+            if (!apiKey) {
+                return "API Key not found. Please ensure the environment is configured correctly.";
+            }
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            const payload = {
-                contents: [{
-                    parts: [{ text: promptText }]
-                }]
-            };
-
+            
             try {
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
                 });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
                 const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
                 return data.candidates[0].content.parts[0].text;
-            } catch (error) {
-                console.error('Gemini API Error:', error);
-                return "抱歉，目前系統繁忙或發生錯誤，請稍後再試。";
+            } catch (err) {
+                console.error(err);
+                return "抱歉，AI 服務暫時無法使用，請稍後再試。";
             }
         }
 
-        // --- Feature 1: Chat Logic ---
+        // Chat Feature Logic
         const chatInput = document.getElementById('chat-input');
         const sendChatBtn = document.getElementById('send-chat-btn');
         const chatHistory = document.getElementById('chat-history');
-        const chatSpinner = document.getElementById('chat-spinner');
+        const chatLoader = document.getElementById('chat-loader');
+        const chatSendIcon = document.getElementById('chat-send-icon');
 
         async function handleChat() {
-            const userQuery = chatInput.value.trim();
-            if (!userQuery) return;
+            const query = chatInput.value.trim();
+            if (!query) return;
 
-            // Add User Message
-            chatHistory.innerHTML += `
-                <div class="flex items-start gap-2 justify-end">
-                    <div class="bg-blue-600 text-white p-2 rounded-lg rounded-tr-none max-w-[90%]">
-                        ${userQuery}
-                    </div>
-                </div>`;
+            // User UI
+            const userDiv = document.createElement('div');
+            userDiv.className = 'flex items-start gap-3 justify-end';
+            userDiv.innerHTML = `<div class="bg-orange-600 text-white p-3 rounded-lg rounded-tr-none max-w-[85%]">${query}</div><div class="w-6 h-6 rounded-full bg-stone-500 flex-shrink-0 flex items-center justify-center text-xs mt-1">Me</div>`;
+            chatHistory.appendChild(userDiv);
             chatInput.value = '';
             chatHistory.scrollTop = chatHistory.scrollHeight;
 
-            // Show loading
+            // Loading UI
             sendChatBtn.disabled = true;
-            chatSpinner.classList.remove('hidden');
+            chatSendIcon.classList.add('hidden');
+            chatLoader.classList.remove('hidden');
 
-            // Call API
-            const prompt = `${reportContext}\n\n使用者問題：${userQuery}`;
-            const aiResponse = await callGeminiAPI(prompt);
+            // API Call
+            const prompt = `你是一位捷克手工具市場分析專家。請根據以下背景資料回答使用者問題。請用繁體中文，簡潔專業。\n\n資料：${marketContext}\n\n使用者問題：${query}`;
+            const reply = await callGemini(prompt);
 
-            // Add AI Message
-            // Basic markdown parsing for bold/lists (simple regex replacement)
-            const formattedResponse = aiResponse
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
-
-            chatHistory.innerHTML += `
-                <div class="flex items-start gap-2">
-                    <div class="bg-purple-100 p-2 rounded-lg rounded-tl-none text-purple-900 max-w-[90%]">
-                        ${formattedResponse}
-                    </div>
-                </div>`;
-            
+            // AI UI
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'flex items-start gap-3';
+            // Simple markdown formatting
+            const formattedReply = reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            aiDiv.innerHTML = `<div class="w-6 h-6 rounded-full bg-blue-600 flex-shrink-0 flex items-center justify-center text-xs mt-1">AI</div><div class="bg-stone-700 text-stone-200 p-3 rounded-lg rounded-tl-none max-w-[90%]">${formattedReply}</div>`;
+            chatHistory.appendChild(aiDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Reset UI
             sendChatBtn.disabled = false;
-            chatSpinner.classList.add('hidden');
+            chatSendIcon.classList.remove('hidden');
+            chatLoader.classList.add('hidden');
         }
 
         sendChatBtn.addEventListener('click', handleChat);
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') handleChat();
-        });
+        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleChat(); });
 
-        // --- Feature 2: Strategy Generator Logic ---
-        const generateStrategyBtn = document.getElementById('generate-strategy-btn');
-        const strategyResult = document.getElementById('strategy-result');
-        const strategySpinner = document.getElementById('strategy-spinner');
-        const roleSelect = document.getElementById('strategy-role');
-        const focusSelect = document.getElementById('strategy-focus');
+        // Strategy Generator Logic
+        const generateBtn = document.getElementById('generate-btn');
+        const strategyOutput = document.getElementById('strategy-output');
+        const strategyLoader = document.getElementById('strategy-loader');
 
-        generateStrategyBtn.addEventListener('click', async () => {
-            const role = roleSelect.options[roleSelect.selectedIndex].text;
-            const focus = focusSelect.options[focusSelect.selectedIndex].text;
+        generateBtn.addEventListener('click', async () => {
+            const role = document.getElementById('role-select').options[document.getElementById('role-select').selectedIndex].text;
+            const focus = document.getElementById('focus-select').options[document.getElementById('focus-select').selectedIndex].text;
 
-            // UI State
-            generateStrategyBtn.disabled = true;
-            strategySpinner.classList.remove('hidden');
-            strategyResult.classList.remove('hidden');
-            strategyResult.innerHTML = '<span class="text-slate-400">正在分析市場數據並生成策略中...</span>';
+            // UI
+            generateBtn.disabled = true;
+            generateBtn.classList.add('opacity-70');
+            strategyLoader.classList.remove('hidden');
+            strategyOutput.innerHTML = '<p class="text-stone-400 animate-pulse mt-10 text-center">正在分析市場數據並建構策略模型...</p>';
 
-            // Prompt Engineering
-            const strategyPrompt = `
-                ${reportContext}
-                
-                任務：請扮演一位資深商業戰略顧問。
-                客戶角色：${role}
-                面臨挑戰/關注點：${focus}
-                
-                請為該客戶生成一份簡短的策略建議書 (繁體中文)，包含：
-                1. 現況分析 (1-2 句話)
-                2. 3 個具體的行動建議 (列點說明)
-                3. 預期效益
-                
-                請使用專業但鼓勵性的語氣。
+            // Prompt
+            const prompt = `
+            背景：${marketContext}
+            
+            任務：請為一位「${role}」生成一份針對「${focus}」的策略建議。
+            
+            格式要求：
+            1. 現況洞察 (1句)
+            2. 戰略行動 (3點，具體可行)
+            3. 預期成效 (1句)
+            
+            語氣：專業顧問，繁體中文。
             `;
 
-            const result = await callGeminiAPI(strategyPrompt);
+            const result = await callGemini(prompt);
 
-            // Format Result
+            // Render
             const formattedResult = result
-                .replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-700">$1</strong>')
-                .replace(/^\* /gm, '• ')
+                .replace(/\*\*(.*?)\*\*/g, '<span class="text-orange-400 font-bold">$1</span>')
                 .replace(/\n/g, '<br>');
+            
+            strategyOutput.innerHTML = `<div class="prose prose-invert prose-sm max-w-none">${formattedResult}</div>`;
 
-            strategyResult.innerHTML = `
-                <h5 class="font-bold text-blue-800 mb-2 border-b border-blue-100 pb-1">專屬策略建議書</h5>
-                <div class="text-slate-700 space-y-2">${formattedResult}</div>
-            `;
-
-            generateStrategyBtn.disabled = false;
-            strategySpinner.classList.add('hidden');
+            // Reset
+            generateBtn.disabled = false;
+            generateBtn.classList.remove('opacity-70');
+            strategyLoader.classList.add('hidden');
         });
 
+        // --- Navigation Logic ---
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                // Adjust for mobile header or desktop layout
+                const isMobile = window.innerWidth < 768;
+                const offset = isMobile ? 80 : 20;
+                
+                // If desktop, scroll the main container. If mobile, scroll window
+                if(isMobile) {
+                   window.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' }); 
+                } else {
+                   // Calculate position relative to container
+                   const container = document.getElementById('main-scroll');
+                   container.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' });
+                }
+                
+                // Update Active State (Simple version)
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                const navLink = document.getElementById('nav-' + id);
+                if(navLink) navLink.classList.add('active');
+            }
+        }
 
-        // --- Chart Data Processing & Rendering (Original Code) ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const current = menu.style.transform;
+            if (current === 'translateX(0%)') {
+                menu.style.transform = 'translateX(100%)';
+            } else {
+                menu.style.transform = 'translateX(0%)';
+            }
+        }
 
-        // Label Wrapping Function (16 char limit)
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+
+        // --- Chart.js Configuration ---
+        Chart.defaults.font.family = "'Noto Sans TC', sans-serif";
+        Chart.defaults.color = '#57534e'; // stone-600
+
+        // Helper: Label Wrapping
         function wrapLabel(label) {
             if (typeof label !== 'string' || label.length <= 16) return label;
-            const words = label.split(' ');
-            const lines = [];
-            let currentLine = words[0];
-
-            for (let i = 1; i < words.length; i++) {
-                if ((currentLine + " " + words[i]).length <= 16) {
-                    currentLine += " " + words[i];
-                } else {
-                    lines.push(currentLine);
-                    currentLine = words[i];
-                }
-            }
-            lines.push(currentLine);
-            return lines;
+            return label.match(/.{1,16}(?:\s|$)/g) || [label];
         }
 
-        function processLabels(labels) {
-            return labels.map(label => wrapLabel(label));
-        }
-
-        const commonTooltipConfig = {
-            callbacks: {
-                title: function(tooltipItems) {
-                    const item = tooltipItems[0];
-                    let label = item.chart.data.labels[item.dataIndex];
-                    if (Array.isArray(label)) {
-                        return label.join(' ');
-                    } else {
-                        return label;
-                    }
-                }
-            }
-        };
-
-        const baseChartOptions = {
+        const commonOptions = {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                tooltip: commonTooltipConfig,
-                legend: {
-                    labels: {
-                        font: { family: "'Noto Sans TC', sans-serif" },
-                        color: '#475569'
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } },
+                tooltip: {
+                    backgroundColor: 'rgba(28, 25, 23, 0.9)',
+                    titleColor: '#ea580c',
+                    bodySpacing: 4,
+                    padding: 10,
+                    callbacks: {
+                        title: (items) => {
+                            let label = items[0].chart.data.labels[items[0].dataIndex];
+                            return Array.isArray(label) ? label.join(' ') : label;
+                        }
                     }
                 }
             },
+            // Explicitly define scales to ensure grid lines are drawn
             scales: {
-                x: { ticks: { color: '#64748b', font: { family: "'Noto Sans TC', sans-serif" } }, grid: { color: '#e2e8f0' } },
-                y: { ticks: { color: '#64748b', font: { family: "'Noto Sans TC', sans-serif" } }, grid: { color: '#e2e8f0' } }
+                x: {
+                    grid: { display: true, color: '#e7e5e4' },
+                    ticks: { color: '#78716c' }
+                },
+                y: {
+                    grid: { display: true, color: '#e7e5e4' },
+                    ticks: { color: '#78716c' }
+                }
             }
         };
 
-        // --- Chart 1: Market Growth (Line) ---
-        const ctxGrowth = document.getElementById('marketGrowthChart').getContext('2d');
-        new Chart(ctxGrowth, {
+        // 1. Growth Chart (Line)
+        new Chart(document.getElementById('growthChart'), {
             type: 'line',
             data: {
-                labels: processLabels(['2021', '2022', '2023', '2024 (預估)', '2025 (預估)', '2026 (預估)', '2027 (預估)', '2028 (預估)']),
+                labels: ['2021', '2022', '2023', '2024(E)', '2025(E)', '2026(E)', '2027(E)', '2028(E)'],
                 datasets: [{
-                    label: '市場營收 (百萬美元)',
+                    label: '市場營收 (M USD)',
                     data: [280, 292, 305, 318, 332, 348, 365, 382],
-                    borderColor: '#2563EB', // Blue 600
-                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderColor: '#ea580c', // Orange 600
+                    backgroundColor: 'rgba(234, 88, 12, 0.1)',
                     borderWidth: 3,
                     pointBackgroundColor: '#fff',
-                    pointBorderColor: '#F97316', // Orange 500
+                    pointBorderColor: '#ea580c',
                     pointRadius: 5,
                     fill: true,
                     tension: 0.3
                 }]
             },
-            options: baseChartOptions
+            options: commonOptions
         });
 
-        // --- Chart 2: Market Share (Donut) ---
-        const ctxShare = document.getElementById('marketShareChart').getContext('2d');
-        new Chart(ctxShare, {
+        // 2. Share Chart (Doughnut)
+        new Chart(document.getElementById('shareChart'), {
             type: 'doughnut',
             data: {
-                labels: processLabels(['國際品牌 (Bosch, Stanley 等)', '本土品牌 (York, Narex)', '低價白牌/其他']),
+                labels: ['國際品牌 (Bosch/Stanley)', '本土品牌 (York/Narex)', '低價白牌/其他'],
                 datasets: [{
                     data: [55, 20, 25],
-                    backgroundColor: [
-                        '#1E40AF', // Blue 800
-                        '#F97316', // Orange 500
-                        '#94A3B8'  // Slate 400
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
+                    backgroundColor: ['#1d4ed8', '#ea580c', '#a8a29e'], // Blue, Orange, Stone
+                    borderWidth: 0
                 }]
             },
             options: {
-                ...baseChartOptions,
-                scales: { x: { display: false }, y: { display: false } }, // No axes for donut
-                plugins: {
-                    ...baseChartOptions.plugins,
-                    legend: { position: 'bottom' }
-                }
+                ...commonOptions,
+                scales: { x: { display: false }, y: { display: false } } // Disable scales for Doughnut
             }
         });
 
-        // --- Chart 3: Brand Ranking (Horizontal Bar) ---
-        const ctxRank = document.getElementById('brandRankingChart').getContext('2d');
-        new Chart(ctxRank, {
+        // 3. Ranking Chart (Horizontal Bar) - FIXED: Static Colors & Explicit Scales
+        const rankingLabels = ['Bosch (德)', 'Stanley (美)', 'Narex (捷)', 'Makita (日)', 'York (捷)', 'Milwaukee (美)'];
+        // Pre-calculate colors to ensure no scriptable errors
+        const rankingColors = rankingLabels.map(label => (label.includes('捷')) ? '#ea580c' : '#3b82f6');
+
+        new Chart(document.getElementById('rankingChart'), {
             type: 'bar',
             data: {
-                labels: processLabels(['Bosch (德國)', 'Stanley B&D (美國)', 'Narex (捷克)', 'Makita (日本)', 'York (捷克)', 'Milwaukee (美國)']),
+                labels: rankingLabels,
                 datasets: [{
-                    label: '品牌市佔率估計 (%)',
-                    data: [22, 18, 12, 10, 8, 7],
-                    backgroundColor: [
-                        '#1E40AF', 
-                        '#3B82F6', 
-                        '#F97316', // Highlight Local
-                        '#60A5FA', 
-                        '#FB923C', // Highlight Local
-                        '#93C5FD'
-                    ],
+                    label: '市場聲量與佔有率指數',
+                    data: [85, 78, 65, 60, 55, 45],
+                    backgroundColor: rankingColors,
                     borderRadius: 4
                 }]
             },
-            options: {
-                ...baseChartOptions,
-                indexAxis: 'y', // Horizontal bar
+            options: { 
+                ...commonOptions, 
+                indexAxis: 'y',
+                scales: {
+                    x: { grid: { display: true, color: '#e7e5e4' } },
+                    y: { grid: { display: false } } // Clean Y axis for horizontal bar
+                }
             }
         });
 
-        // --- Chart 4: Trade Balance (Stacked Bar) ---
-        const ctxTrade = document.getElementById('tradeBalanceChart').getContext('2d');
-        new Chart(ctxTrade, {
+        // 4. Trade Chart (Stacked Bar)
+        new Chart(document.getElementById('tradeChart'), {
             type: 'bar',
             data: {
-                labels: processLabels(['2021', '2022', '2023']),
+                labels: ['2021', '2022', '2023'],
                 datasets: [
-                    {
-                        label: '進口額',
-                        data: [150, 165, 172],
-                        backgroundColor: '#334155', // Slate 700
-                    },
-                    {
-                        label: '出口額',
-                        data: [80, 85, 92],
-                        backgroundColor: '#F97316', // Orange 500
-                    }
+                    { label: '進口額', data: [150, 165, 172], backgroundColor: '#475569' },
+                    { label: '出口額', data: [80, 85, 92], backgroundColor: '#ea580c' }
                 ]
             },
             options: {
-                ...baseChartOptions,
-                scales: {
-                    x: { ...baseChartOptions.scales.x, stacked: false },
-                    y: { ...baseChartOptions.scales.y, stacked: false }
-                }
+                ...commonOptions,
+                scales: { x: { stacked: false }, y: { stacked: false } }
             }
         });
 
-        // --- Chart 5: User Split (Pie) ---
-        const ctxUser = document.getElementById('userSplitChart').getContext('2d');
-        new Chart(ctxUser, {
+        // 5. User Pie Chart
+        new Chart(document.getElementById('userPieChart'), {
             type: 'pie',
             data: {
-                labels: processLabels(['專業用戶 (工廠/建築)', 'DIY 家庭用戶', '半專業 (愛好者)']),
+                labels: ['專業用戶 (Pro)', 'DIY 家庭用戶', '半專業 (愛好者)'],
                 datasets: [{
                     data: [45, 40, 15],
-                    backgroundColor: ['#1E3A8A', '#F97316', '#CBD5E1'],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
+                    backgroundColor: ['#1e40af', '#f97316', '#cbd5e1']
                 }]
             },
             options: {
-                ...baseChartOptions,
-                scales: { x: { display: false }, y: { display: false } },
-                plugins: {
-                    ...baseChartOptions.plugins,
-                    legend: { position: 'bottom' }
-                }
+                ...commonOptions,
+                scales: { x: { display: false }, y: { display: false } }
             }
         });
 
-        // --- Chart 6: Buying Criteria (Radar) ---
-        const ctxCriteria = document.getElementById('buyingCriteriaChart').getContext('2d');
-        new Chart(ctxCriteria, {
+        // 6. Radar Chart
+        new Chart(document.getElementById('radarChart'), {
             type: 'radar',
             data: {
-                labels: processLabels(['價格敏感度', '品牌忠誠度', '耐用性要求', '人體工學', '售後服務']),
+                labels: ['價格敏感度', '品牌忠誠度', '耐用性', '人體工學', '售後服務'],
                 datasets: [
                     {
                         label: '專業用戶',
                         data: [2, 4, 5, 5, 4],
-                        borderColor: '#1E40AF',
-                        backgroundColor: 'rgba(30, 64, 175, 0.2)',
-                        pointBackgroundColor: '#1E40AF'
+                        borderColor: '#1e40af',
+                        backgroundColor: 'rgba(30, 64, 175, 0.2)'
                     },
                     {
                         label: 'DIY 用戶',
                         data: [5, 2, 3, 3, 2],
-                        borderColor: '#F97316',
-                        backgroundColor: 'rgba(249, 115, 22, 0.2)',
-                        pointBackgroundColor: '#F97316'
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.2)'
                     }
                 ]
             },
             options: {
-                ...baseChartOptions,
-                scales: {
-                    r: {
-                        angleLines: { color: '#e2e8f0' },
-                        grid: { color: '#e2e8f0' },
-                        pointLabels: {
-                            font: { size: 12, family: "'Noto Sans TC', sans-serif" },
-                            color: '#475569'
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 5
-                    }
-                }
+                ...commonOptions,
+                scales: { r: { suggestedMin: 0, suggestedMax: 5, ticks: { display: false }, grid: { color: '#e7e5e4' } } }
             }
         });
 
-        // --- Chart 7: Channel Trends (Grouped Bar) ---
-        const ctxChannel = document.getElementById('channelTrendChart').getContext('2d');
-        new Chart(ctxChannel, {
+        // 7. Channel Chart
+        new Chart(document.getElementById('channelChart'), {
             type: 'bar',
             data: {
-                labels: processLabels(['2020 (疫情前)', '2022 (疫情後)', '2024 (現況)']),
+                labels: ['2020 (疫情前)', '2022 (疫情後)', '2024 (現況)'],
                 datasets: [
-                    {
-                        label: '實體零售 (五金行/賣場)',
-                        data: [75, 65, 62],
-                        backgroundColor: '#64748B',
-                    },
-                    {
-                        label: '電子商務',
-                        data: [25, 35, 38],
-                        backgroundColor: '#3B82F6',
-                    }
+                    { label: '實體零售', data: [75, 65, 62], backgroundColor: '#57534e' },
+                    { label: '電子商務', data: [25, 35, 38], backgroundColor: '#3b82f6' }
                 ]
             },
-            options: baseChartOptions
+            options: commonOptions
         });
 
     </script>
